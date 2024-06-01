@@ -66,7 +66,10 @@ class ProfileServiceImpl(
         val userId = authentication.name.toLong()
         val user = try {
             profileRepository.deleteByUserId(userId)
-            User(authentication.name.toLong())
+            val user = User(authentication.name.toLong())
+            prizeRepository.deleteByUser(user)
+            careerRepository.deleteByUser(user)
+            user
         } catch (noSuchElementException: NoSuchElementException) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
