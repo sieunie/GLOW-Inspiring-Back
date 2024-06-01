@@ -56,7 +56,7 @@ class MentoringServiceImpl(
         return try{
             val mentoring = mentoringRepository.findById(id).orElseThrow { NullPointerException() }
             ResponseEntity.ok(
-                MentoringGetRes(mentoring)
+                MentoringGetRes(mentoring, imageRepository.findByMentoring(mentoring))
             )
         } catch(nullPointerException: NullPointerException){
             ResponseEntity(HttpStatus.NOT_FOUND)
@@ -65,7 +65,7 @@ class MentoringServiceImpl(
 
     override fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<MentoringGetElementRes>> {
         return ResponseEntity.ok(mentoringRepository.findAll(PageRequest.of(pageNumber, pageSize)).map{
-                mentoring -> MentoringGetElementRes(mentoring)
+                mentoring -> MentoringGetElementRes(mentoring, imageRepository.findByMentoringOrderById(PageRequest.of(0, 1)))
         })
     }
 }

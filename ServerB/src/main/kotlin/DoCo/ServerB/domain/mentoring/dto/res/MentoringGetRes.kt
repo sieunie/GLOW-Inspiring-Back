@@ -1,6 +1,8 @@
 package DoCo.ServerB.domain.mentoring.dto.res
 
+import DoCo.ServerB.domain.image.dto.res.ImageGetRes
 import DoCo.ServerB.global.data.dto.res.UserRes
+import DoCo.ServerB.global.data.entity.Image
 import DoCo.ServerB.global.data.entity.Mentoring
 import DoCo.ServerB.global.data.enum.MentoringCategory
 import java.time.LocalDateTime
@@ -18,10 +20,11 @@ data class MentoringGetRes(
     val description: String,
     val topic: String,
     val category: MentoringCategory,
-    val accepted: Boolean
+    val accepted: Boolean,
+    val imageList: List<ImageGetRes>
 ){
 
-    constructor(mentoring: Mentoring): this(
+    constructor(mentoring: Mentoring, imageList: List<Image>): this(
         id = mentoring.id ?: 0,
         user = UserRes(mentoring.user),
         title = mentoring.title,
@@ -34,6 +37,10 @@ data class MentoringGetRes(
         description = mentoring.description ?: "",
         topic = mentoring.topic,
         category = mentoring.category,
-        accepted = mentoring.accepted
+        accepted = mentoring.accepted,
+        imageList = imageList.map {
+            image ->
+            ImageGetRes(image)
+        }
     )
 }
