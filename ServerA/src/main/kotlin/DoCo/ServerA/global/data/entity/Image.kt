@@ -9,7 +9,7 @@ data class Image(
     var id: Int?,
     var mentoringId: Int?,
     var lectureId: Int?,
-    var profileId: Int?,
+    var profileId: Long?,
     var path: String,
     var userId: Long
 ){
