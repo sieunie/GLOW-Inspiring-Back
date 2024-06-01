@@ -2,6 +2,7 @@ package DoCo.ServerA.domain.profile.presentation
 
 import DoCo.ServerA.domain.profile.application.ProfileService
 import DoCo.ServerA.domain.profile.data.dto.req.ProfilePostReq
+import DoCo.ServerA.domain.profile.data.dto.res.ProfileGetRes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -11,9 +12,11 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -30,5 +33,14 @@ class ProfileController(
     )
     fun post(@RequestBody profilePostReq: ProfilePostReq, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus> {
         return profileService.post(profilePostReq, authentication);
+    }
+
+    @GetMapping
+    @Operation(summary = "프로필 조회")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "성공", content = arrayOf(Content()))
+    )
+    fun get(@RequestParam id: Long): ResponseEntity<ProfileGetRes> {
+        return profileService.get(id)
     }
 }

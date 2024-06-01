@@ -2,6 +2,7 @@ package DoCo.ServerA.domain.profile.application.impl
 
 import DoCo.ServerA.domain.profile.application.ProfileService
 import DoCo.ServerA.domain.profile.data.dto.req.ProfilePostReq
+import DoCo.ServerA.domain.profile.data.dto.res.ProfileGetRes
 import DoCo.ServerA.global.data.entity.Career
 import DoCo.ServerA.global.data.entity.Prize
 import DoCo.ServerA.global.data.entity.Profile
@@ -30,11 +31,12 @@ class ProfileServiceImpl(
         profileRepository.save(Profile(
             userId = user.id,
             description = profilePostReq.description,
-            imageId = profilePostReq.imageId,
+            imagePath = null,
             education = profilePostReq.education,
         ))
 
-        for (prize in profilePostReq.prizeList) {
+        profilePostReq.prizeList.map {
+            prize ->
             prizeRepository.save(Prize(
                 id = null,
                 user = user,
@@ -42,7 +44,8 @@ class ProfileServiceImpl(
             ))
         }
 
-        for (career in profilePostReq.careerList) {
+        profilePostReq.careerList.map {
+            career ->
             careerRepository.save(Career(
                 id = null,
                 user = user,
@@ -51,5 +54,20 @@ class ProfileServiceImpl(
         }
 
         return ResponseEntity(HttpStatus.OK)
+    }
+
+    override fun get(id: Long): ResponseEntity<ProfileGetRes> {
+        val profile = profileRepository.findById(id)
+            .orElseThrow{throw NoSuchElementException("일치하는 사용자가 없습니다.")}
+
+        return ResponseEntity(
+            ProfileGetRes(
+                id = id,
+                description = profile.description,
+                imagePath = profile.imagePath,
+                education = profile.education,
+                careerList = careerRepository.findAllByUserId(id),
+                prizeList = prizeRepository.findAllByUserId(id)
+        ), HttpStatus.OK)
     }
 }
