@@ -5,7 +5,9 @@ import DoCo.ServerB.domain.mentoring.dto.req.MentoringPostReq
 import DoCo.ServerB.domain.mentoring.dto.req.MentoringPutReq
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
+import DoCo.ServerB.domain.mentoring.dto.res.MentoringRequestGetElementRes
 import DoCo.ServerB.global.data.entity.Mentoring
+import DoCo.ServerB.global.data.entity.MentoringRequest
 import DoCo.ServerB.global.data.entity.User
 import DoCo.ServerB.global.repository.ImageRepository
 import DoCo.ServerB.global.repository.MentoringRepository
@@ -16,8 +18,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
-import java.lang.NullPointerException
 import java.util.concurrent.CompletableFuture
+import kotlin.NullPointerException
 
 @Service
 class MentoringServiceImpl(
@@ -92,6 +94,66 @@ class MentoringServiceImpl(
             ResponseEntity.ok().build()
         else
             ResponseEntity(HttpStatus.NOT_FOUND)
+    }
+
+    override fun postRequest(id: Int, authentication: Authentication): ResponseEntity<HttpStatus> {
+        return try{
+            val mentoring = mentoringRepository.findById(id).orElseThrow { NullPointerException() }
+            val user = User(authentication.name.toLong())
+
+            CompletableFuture.supplyAsync {
+                MentoringRequest(id = null, mentoring = mentoring, user = user)
+            }.thenApplyAsync {
+                    mentoringRequest ->
+                mentoringRequestRepository.save(mentoringRequest)
+            }
+            ResponseEntity.ok().build()
+        } catch(nullPointerException: NullPointerException){
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    override fun getRequest(
+        id: Int,
+        authentication: Authentication
+    ): ResponseEntity<List<MentoringRequestGetElementRes>> {
+        return try{
+            val mentoring = mentoringRepository.findByIdAndUser(id, User(authentication.name.toLong())).orElseThrow { NullPointerException() }
+            ResponseEntity.ok(mentoringRequestRepository.findByMentoring(mentoring).map {
+                    mentoringRequest -> MentoringRequestGetElementRes(mentoringRequest)
+            })
+        }catch(nullPointerException: NullPointerException) {
+            ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+    }
+
+    override fun patchRequest(
+        mentoringId: Int,
+        mentoringRequestId: Int,
+        authentication: Authentication
+    ): ResponseEntity<HttpStatus> {
+        try{
+            val user = User(authentication.name.toLong())
+            val mentoring = mentoringRepository.findByIdAndUser(mentoringId, user).orElseThrow { NullPointerException() }
+            val mentoringRequest = mentoringRequestRepository.findByIdAndMentoring(mentoringId, mentoring).orElseThrow { NoSuchElementException() }
+
+            mentoring.accepted = true
+            mentoringRequest.accepted = true
+
+            CompletableFuture.runAsync {
+                mentoringRepository.save(mentoring)
+            }
+
+            CompletableFuture.runAsync {
+                mentoringRequestRepository.save(mentoringRequest)
+            }
+
+            return ResponseEntity.ok().build()
+        }catch (nullPointerException: NullPointerException){
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }catch (noSuchElementException: NoSuchElementException){
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
 
     override fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<MentoringGetElementRes>> {
