@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository
 interface ImageRepository: JpaRepository<Image, Int> {
     fun existsByIdAndUserId(imageId: Int, toLong: Long): Boolean
     fun findByMentoring(mentoring: Mentoring?): List<Image>
-    fun findByMentoringOrderById(mentoring: Mentoring, of: PageRequest): Image
+    fun findByMentoringOrderByIdDesc(mentoring: Mentoring, of: PageRequest): Image
 }

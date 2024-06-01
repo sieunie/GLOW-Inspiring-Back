@@ -2,6 +2,7 @@ package DoCo.ServerB.domain.mentoring.presentation
 
 import DoCo.ServerB.domain.mentoring.application.MentoringService
 import DoCo.ServerB.domain.mentoring.dto.req.MentoringPostReq
+import DoCo.ServerB.domain.mentoring.dto.req.MentoringPutReq
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
 import io.swagger.v3.oas.annotations.Operation
@@ -15,12 +16,7 @@ import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/mentoring")
@@ -55,5 +51,24 @@ class MentoringController(
     )
     fun getList(@RequestParam pageSize: Int, @RequestParam pageNumber: Int): ResponseEntity<Page<MentoringGetElementRes>>{
         return mentoringService.getList(pageNumber, pageSize)
+    }
+
+    @PutMapping
+    @Operation(summary = "과외 수정 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "성공", content = arrayOf()),
+        ApiResponse(responseCode = "404", description = "해당 데이터를 찾을 수 없음")
+    )
+    fun put(@RequestBody mentoringPutReq: MentoringPutReq, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
+        return mentoringService.put(mentoringPutReq, authentication)
+    }
+
+    @DeleteMapping
+    @Operation(summary = "과외 삭제 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "성공")
+    )
+    fun delete(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
+        return mentoringService.delete(id, authentication)
     }
 }

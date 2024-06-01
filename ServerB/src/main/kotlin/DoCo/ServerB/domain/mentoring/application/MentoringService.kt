@@ -1,6 +1,7 @@
 package DoCo.ServerB.domain.mentoring.application
 
 import DoCo.ServerB.domain.mentoring.dto.req.MentoringPostReq
+import DoCo.ServerB.domain.mentoring.dto.req.MentoringPutReq
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
 import org.springframework.data.domain.Page
@@ -12,4 +13,6 @@ interface MentoringService {
     fun post(mentoringPostReq: MentoringPostReq, authentication: Authentication): ResponseEntity<HttpStatus>
     fun get(id: Int): ResponseEntity<MentoringGetRes>
     fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<MentoringGetElementRes>>
+    fun put(mentoringPutReq: MentoringPutReq, authentication: Authentication): ResponseEntity<HttpStatus>
+    fun delete(id: Int, authentication: Authentication): ResponseEntity<HttpStatus>
 }
