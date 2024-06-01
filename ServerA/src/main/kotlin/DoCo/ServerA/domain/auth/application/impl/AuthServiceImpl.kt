@@ -3,7 +3,7 @@ package DoCo.ServerA.domain.auth.application.impl
 import DoCo.ServerA.domain.auth.application.AuthService
 import DoCo.ServerA.domain.auth.dto.AuthGetKakaoAccessTokenRes
 import DoCo.ServerA.domain.auth.dto.AuthGetKakaoInfoRes
-import DoCo.ServerA.domain.auth.dto.AuthGetLoginRes
+import DoCo.ServerA.domain.auth.dto.AuthLoginRes
 import DoCo.ServerA.global.config.jwt.JwtTokenProvider
 import DoCo.ServerA.global.data.entity.User
 import DoCo.ServerA.global.repository.UserRepository
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
+import java.lang.IndexOutOfBoundsException
 import java.lang.NullPointerException
 import java.util.concurrent.CompletableFuture
 
@@ -28,7 +29,7 @@ class AuthServiceImpl(
 
     private val kakaoAccessTokenServerUrl = "https://kauth.kakao.com/oauth/token"
     private val kakaoInfoServerUrl = "https://kapi.kakao.com/v2/user/me"
-    override fun getLogin(code: String): ResponseEntity<AuthGetLoginRes> {
+    override fun getLogin(code: String): ResponseEntity<AuthLoginRes> {
 
         val kakaoAccessTokenRes = try{
             getKakaoAccessToken(code)
@@ -53,7 +54,21 @@ class AuthServiceImpl(
         val accessToken = jwtTokenProvider.createAccessToken(kakaoUserInfoRes.id)
         val refreshToken = jwtTokenProvider.createRefreshToken(kakaoUserInfoRes.id)
 
-        return ResponseEntity.ok(AuthGetLoginRes(accessToken, refreshToken))
+        return ResponseEntity.ok(AuthLoginRes(accessToken, refreshToken))
+    }
+
+    override fun patchLogin(refreshToken: String): ResponseEntity<AuthLoginRes> {
+        return try{
+            val token = refreshToken.split(" ")[1]
+            val userId = jwtTokenProvider.getId(token)
+            val accessToken = jwtTokenProvider.createAccessToken(userId ?: throw NullPointerException())
+            ResponseEntity.ok(AuthLoginRes(accessToken, refreshToken))
+        } catch (nullPointerException: NullPointerException){
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        } catch(indexOutOfBoundsException: IndexOutOfBoundsException){
+            ResponseEntity(HttpStatus.UNAUTHORIZED)
+        }
+
     }
 
     private fun register(kakaoUserInfoRes: AuthGetKakaoInfoRes){
