@@ -2,10 +2,10 @@ package DoCo.ServerB.domain.lecture.data.dto.req
 
 import DoCo.ServerB.global.data.enum.LectureCategory
 import DoCo.ServerB.global.data.enum.MentoringCategory
-import io.swagger.v3.oas.annotations.Parameter
 import java.time.LocalDateTime
 
-data class LecturePostReq(
+data class LecturePutReq(
+    val id: Int,
     val topic: String,
     val startTime: LocalDateTime,
     val endTime: LocalDateTime,
