@@ -6,6 +6,7 @@ import DoCo.ServerB.domain.mentoring.dto.req.MentoringPutReq
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringRequestGetElementRes
+import DoCo.ServerB.global.data.entity.Mentoring
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -48,9 +49,9 @@ class MentoringController(
     @GetMapping("/list")
     @Operation(summary = "과외 리스트 조회 API")
     @ApiResponses(
-        ApiResponse(responseCode = "200", description = "성공", content = arrayOf(Content(schema = Schema(implementation = MentoringGetElementRes::class))))
+        ApiResponse(responseCode = "200", description = "성공", content = arrayOf(Content(schema = Schema(implementation = Mentoring::class))))
     )
-    fun getList(@RequestParam pageSize: Int, @RequestParam pageNumber: Int): ResponseEntity<Page<MentoringGetElementRes>>{
+    fun getList(@RequestParam pageSize: Int, @RequestParam pageNumber: Int): ResponseEntity<Page<Mentoring>>{
         return mentoringService.getList(pageNumber, pageSize)
     }
 
