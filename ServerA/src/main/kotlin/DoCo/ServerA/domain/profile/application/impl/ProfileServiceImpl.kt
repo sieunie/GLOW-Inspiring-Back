@@ -25,8 +25,12 @@ class ProfileServiceImpl(
 ): ProfileService {
 
     override fun post(profilePostReq: ProfilePostReq, authentication: Authentication): ResponseEntity<HttpStatus> {
-        val user = userRepository.findById(authentication.name.toLong())
-            .orElseThrow{throw NoSuchElementException("일치하는 사용자가 없습니다.") }
+        val user = try {
+            userRepository.findById(authentication.name.toLong())
+                .orElseThrow{throw NoSuchElementException("일치하는 사용자가 없습니다.") }
+        } catch (noSuchElementException: NoSuchElementException) {
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
 
         profileRepository.save(Profile(
             userId = user.id,
@@ -57,8 +61,12 @@ class ProfileServiceImpl(
     }
 
     override fun get(id: Long): ResponseEntity<ProfileGetRes> {
-        val profile = profileRepository.findById(id)
-            .orElseThrow{throw NoSuchElementException("일치하는 사용자가 없습니다.")}
+        val profile = try {
+            profileRepository.findById(id)
+                .orElseThrow{throw NoSuchElementException("일치하는 사용자가 없습니다.")}
+        } catch (noSuchElementException: NoSuchElementException) {
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
 
         return ResponseEntity(
             ProfileGetRes(
