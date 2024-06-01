@@ -156,10 +156,8 @@ class MentoringServiceImpl(
         }
     }
 
-    override fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<MentoringGetElementRes>> {
-        return ResponseEntity.ok(mentoringRepository.findAll(PageRequest.of(pageNumber, pageSize)).map{
-                mentoring -> MentoringGetElementRes(mentoring, imageRepository.findByMentoringOrderByIdDesc(mentoring, PageRequest.of(0, 1)))
-        })
+    override fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<Mentoring>> {
+        return ResponseEntity.ok(mentoringRepository.findAll(PageRequest.of(pageNumber, pageSize)))
     }
 
 
