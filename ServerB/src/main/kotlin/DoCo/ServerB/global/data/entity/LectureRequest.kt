@@ -10,7 +10,8 @@ data class LectureRequest(
     var id: Int?,
     @ManyToOne
     var lecture: Lecture,
-    var userId: Long,
+    @ManyToOne
+    var user: User,
     var createdAt: LocalDateTime = LocalDateTime.now(),
     var accepted: Boolean = false
 )

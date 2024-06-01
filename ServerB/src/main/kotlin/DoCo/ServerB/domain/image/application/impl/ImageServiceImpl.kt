@@ -3,6 +3,7 @@ package DoCo.ServerB.domain.image.application.impl
 import DoCo.ServerB.domain.image.application.ImageService
 import DoCo.ServerB.domain.image.dto.res.ImagePostElementRes
 import DoCo.ServerB.global.data.entity.Image
+import DoCo.ServerB.global.data.entity.User
 import DoCo.ServerB.global.repository.ImageRepository
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.ObjectMetadata
@@ -29,9 +30,10 @@ class ImageServiceImpl(
 
     private final val s3Prefix = "GLOW/"
     override fun post(multipartFileList: List<MultipartFile>, authentication: Authentication): ResponseEntity<List<ImagePostElementRes>> {
+        val user = User(authentication.name.toLong())
         return try{
             val imagePostElementResList = multipartFileList.map { multipartFile ->
-                val image = imageRepository.save(Image(path + uploadToS3(multipartFile), authentication.name.toLong()))
+                val image = imageRepository.save(Image(path + uploadToS3(multipartFile), user))
                 ImagePostElementRes(image.id ?: throw NullPointerException())
             }
             ResponseEntity.ok(imagePostElementResList)
