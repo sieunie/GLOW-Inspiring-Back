@@ -9,11 +9,13 @@ import com.amazonaws.services.s3.model.ObjectMetadata
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
 import org.springframework.web.multipart.MultipartFile
 import java.lang.NullPointerException
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 @Service
 class ImageServiceImpl(
@@ -26,16 +28,34 @@ class ImageServiceImpl(
 ): ImageService {
 
     private final val s3Prefix = "GLOW/"
-    override fun post(multipartFileList: List<MultipartFile>): ResponseEntity<List<ImagePostElementRes>> {
+    override fun post(multipartFileList: List<MultipartFile>, authentication: Authentication): ResponseEntity<List<ImagePostElementRes>> {
         return try{
             val imagePostElementResList = multipartFileList.map { multipartFile ->
-                val image = imageRepository.save(Image(path + uploadToS3(multipartFile)))
+                val image = imageRepository.save(Image(path + uploadToS3(multipartFile), authentication.name.toLong()))
                 ImagePostElementRes(image.id ?: throw NullPointerException())
             }
             ResponseEntity.ok(imagePostElementResList)
         } catch(nullPointerException: NullPointerException){
             ResponseEntity(HttpStatus.BAD_GATEWAY)
         }
+    }
+
+    override fun delete(imageIdList: List<Int>, authentication: Authentication): ResponseEntity<HttpStatus> {
+        imageIdList.map {
+            imageId ->
+                if(!imageRepository.existsByIdAndUserId(imageId, authentication.name.toLong()))
+                    return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+
+        CompletableFuture.runAsync {
+            imageRepository.deleteAllById(
+                imageIdList.map {
+                        imageId -> imageId
+                }
+            )
+        }
+
+        return ResponseEntity.ok().build()
     }
 
     private fun uploadToS3(multipartFile: MultipartFile): String{
