@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface ImageRepository: JpaRepository<Image, Int> {
+    fun existsByIdAndUserId(imageId: Int, toLong: Long): Boolean
 }
