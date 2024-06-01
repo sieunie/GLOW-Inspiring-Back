@@ -2,12 +2,15 @@ package DoCo.ServerB.domain.mentoring.application.impl
 
 import DoCo.ServerB.domain.mentoring.application.MentoringService
 import DoCo.ServerB.domain.mentoring.dto.req.MentoringPostReq
+import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
 import DoCo.ServerB.global.data.entity.Mentoring
 import DoCo.ServerB.global.data.entity.User
 import DoCo.ServerB.global.repository.ImageRepository
 import DoCo.ServerB.global.repository.MentoringRepository
 import DoCo.ServerB.global.repository.MentoringRequestRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -46,7 +49,6 @@ class MentoringServiceImpl(
                     imageRepository.save(image)
             }
         }
-
         return ResponseEntity.ok().build()
     }
 
@@ -54,10 +56,16 @@ class MentoringServiceImpl(
         return try{
             val mentoring = mentoringRepository.findById(id).orElseThrow { NullPointerException() }
             ResponseEntity.ok(
-
-            ).build()
+                MentoringGetRes(mentoring, imageRepository.findByMentoring(mentoring))
+            )
         } catch(nullPointerException: NullPointerException){
             ResponseEntity(HttpStatus.NOT_FOUND)
         }
+    }
+
+    override fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<MentoringGetElementRes>> {
+        return ResponseEntity.ok(mentoringRepository.findAll(PageRequest.of(pageNumber, pageSize)).map{
+                mentoring -> MentoringGetElementRes(mentoring, imageRepository.findByMentoringOrderById(PageRequest.of(0, 1)))
+        })
     }
 }
