@@ -3,6 +3,7 @@ package DoCo.ServerA.domain.profile.application.impl
 import DoCo.ServerA.domain.profile.application.ProfileService
 import DoCo.ServerA.domain.profile.data.dto.req.ProfilePostReq
 import DoCo.ServerA.domain.profile.data.dto.res.ProfileGetRes
+import DoCo.ServerA.global.ImageRepository
 import DoCo.ServerA.global.data.entity.*
 import DoCo.ServerA.global.repository.*
 import org.springframework.http.HttpStatus
@@ -18,7 +19,8 @@ class ProfileServiceImpl(
     private val prizeRepository: PrizeRepository,
     private val careerRepository: CareerRepository,
     private val userRepository: UserRepository,
-    private val educationRepository: EducationRepository
+    private val educationRepository: EducationRepository,
+    private val imageRepository: ImageRepository
 ): ProfileService {
 
     override fun post(profilePostReq: ProfilePostReq, authentication: Authentication): ResponseEntity<HttpStatus> {
@@ -29,7 +31,7 @@ class ProfileServiceImpl(
             return ResponseEntity(HttpStatus.BAD_REQUEST)
         }
 
-        profileRepository.save(Profile(
+        val profile = profileRepository.save(Profile(
             userId = user.id,
             description = profilePostReq.description,
             imagePath = null
@@ -64,6 +66,11 @@ class ProfileServiceImpl(
             }
         }
 
+        CompletableFuture.runAsync {
+            val image = imageRepository.findById(profilePostReq.imageId ?: 0).orElseThrow()
+            image.profileId = profile.userId
+            imageRepository.save(image)
+        }
 
         return ResponseEntity(HttpStatus.OK)
     }
@@ -109,6 +116,10 @@ class ProfileServiceImpl(
             profilePostReq.educationList.map {
                 education -> educationRepository.save(Education(id = null, user = user, content = education))
             }
+        }.thenRunAsync {
+            val image = imageRepository.findById(profilePostReq.imageId ?: 0).orElseThrow()
+            image.profileId = userId
+            imageRepository.save(image)
         }
 
         return ResponseEntity.ok().build()
@@ -123,7 +134,8 @@ class ProfileServiceImpl(
         profileRepository.deleteById(authentication.name.toLong())
         prizeRepository.deleteByUser(user)
         careerRepository.deleteByUser(user)
-        println(educationRepository.deleteByUser(user))
+        educationRepository.deleteByUser(user)
+        imageRepository.deleteByUserId(user.id)
         return ResponseEntity.ok().build()
     }
 
@@ -139,7 +151,7 @@ class ProfileServiceImpl(
             ProfileGetRes(
                 id = id,
                 description = profile.description,
-                imagePath = profile.imagePath,
+                imagePath = imageRepository.findByUserId(profile.userId).path,
                 education = educationRepository.findAllByUser(User(profile.userId)).map { education -> education.content },
                 careerList = careerRepository.findAllByUserId(id),
                 prizeList = prizeRepository.findAllByUserId(id)
