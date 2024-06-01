@@ -14,7 +14,7 @@ class JwtTokenProvider(
 ) {
 
     private final val accessTokenValidTime = Duration.ofHours(2).toMillis()
-    private final val refreshTokenValidTime = Duration.ofSeconds(7).toMillis()
+    private final val refreshTokenValidTime = Duration.ofDays(7).toMillis()
 
     fun getId(token: String): Long?{
         return Jwts.parser()
