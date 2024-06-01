@@ -10,7 +10,8 @@ data class MentoringRequest(
     var id: Int?,
     @ManyToOne
     var mentoring: Mentoring,
-    var userId: Long,
+    @ManyToOne
+    var user: User,
     var createdAt: LocalDateTime = LocalDateTime.now(),
     var accepted: Boolean = false
 )

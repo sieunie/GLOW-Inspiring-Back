@@ -9,7 +9,8 @@ data class Lecture(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Int?,
-    var userId: Long,
+    @ManyToOne
+    var user: User,
     var title: String,
     var startTime: LocalDateTime,
     var endTime: LocalDateTime,
