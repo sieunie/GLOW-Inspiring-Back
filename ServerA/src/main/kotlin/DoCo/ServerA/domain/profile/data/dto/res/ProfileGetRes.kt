@@ -4,7 +4,7 @@ data class ProfileGetRes(
     val id: Long,
     val description: String?,
     val imagePath: String?,
-    val education: String?,
+    val education: List<String>,
     val careerList: List<String>,
     val prizeList: List<String>
 )
