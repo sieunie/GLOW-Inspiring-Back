@@ -5,6 +5,7 @@ import DoCo.ServerB.domain.lecture.data.dto.req.LecturePostReq
 import DoCo.ServerB.domain.lecture.data.dto.req.LecturePutReq
 import DoCo.ServerB.domain.lecture.data.dto.res.LectureGetElementRes
 import DoCo.ServerB.domain.lecture.data.dto.res.LectureGetRes
+import DoCo.ServerB.domain.lecture.data.dto.res.LectureRequestGetElementRes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -70,5 +71,32 @@ class LectureController(
     )
     fun delete(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus> {
         return lectureService.delete(id, authentication)
+    }
+
+    @PostMapping("/request")
+    @Operation(summary = "강연 요청 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200")
+    )
+    fun postRequest(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
+        return lectureService.postRequest(id, authentication)
+    }
+
+    @GetMapping("/request")
+    @Operation(summary = "강연 조회 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200")
+    )
+    fun getRequest(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<List<LectureRequestGetElementRes>>{
+        return lectureService.getRequest(id, authentication)
+    }
+
+    @PatchMapping("/request")
+    @Operation(summary = "강연 요청 수락 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200")
+    )
+    fun patchRequest(@RequestParam lectureId: Int, lectureRequestId: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
+        return lectureService.patchRequest(lectureId, lectureRequestId, authentication)
     }
 }
