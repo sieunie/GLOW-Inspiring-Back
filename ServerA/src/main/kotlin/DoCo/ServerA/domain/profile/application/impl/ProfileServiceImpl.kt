@@ -6,6 +6,7 @@ import DoCo.ServerA.domain.profile.data.dto.res.ProfileGetRes
 import DoCo.ServerA.global.data.entity.Career
 import DoCo.ServerA.global.data.entity.Prize
 import DoCo.ServerA.global.data.entity.Profile
+import DoCo.ServerA.global.data.entity.User
 import DoCo.ServerA.global.repository.CareerRepository
 import DoCo.ServerA.global.repository.PrizeRepository
 import DoCo.ServerA.global.repository.ProfileRepository
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Service
 import java.util.NoSuchElementException
+import java.util.concurrent.CompletableFuture
 
 @Service
 class ProfileServiceImpl(
@@ -58,6 +60,60 @@ class ProfileServiceImpl(
         }
 
         return ResponseEntity(HttpStatus.OK)
+    }
+
+    override fun put(profilePostReq: ProfilePostReq, authentication: Authentication): ResponseEntity<HttpStatus> {
+        val userId = authentication.name.toLong()
+        val user = try {
+            profileRepository.deleteByUserId(userId)
+            val user = User(authentication.name.toLong())
+            prizeRepository.deleteByUser(user)
+            careerRepository.deleteByUser(user)
+            user
+        } catch (noSuchElementException: NoSuchElementException) {
+            return ResponseEntity(HttpStatus.BAD_REQUEST)
+        }
+
+        CompletableFuture.supplyAsync {
+            profileRepository.save(Profile(
+                userId = userId,
+                description = profilePostReq.description,
+                imagePath = null,
+                education = profilePostReq.education,
+            ))
+        }.thenApplyAsync {
+            profilePostReq.prizeList.map {
+                    prize ->
+                prizeRepository.save(Prize(
+                    id = null,
+                    user = user,
+                    content = prize
+                ))
+            }
+        }.thenApplyAsync {
+            profilePostReq.careerList.map {
+                    career ->
+                careerRepository.save(Career(
+                    id = null,
+                    user = user,
+                    content = career
+                ))
+            }
+        }
+
+        return ResponseEntity.ok().build()
+    }
+
+    override fun get(authentication: Authentication): ResponseEntity<ProfileGetRes> {
+        return this.get(authentication.name.toLong())
+    }
+
+    override fun delete(authentication: Authentication): ResponseEntity<HttpStatus> {
+        val user = User(authentication.name.toLong())
+        profileRepository.deleteById(authentication.name.toLong())
+        prizeRepository.deleteByUser(user)
+        careerRepository.deleteByUser(user)
+        return ResponseEntity.ok().build()
     }
 
     override fun get(id: Long): ResponseEntity<ProfileGetRes> {

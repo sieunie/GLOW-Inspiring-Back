@@ -7,5 +7,7 @@ import jakarta.persistence.Id
 data class User(
     @Id
     var id: Long,
-    var name: String
-)
+    var name: String?
+){
+    constructor(id: Long): this(id, null)
+}
