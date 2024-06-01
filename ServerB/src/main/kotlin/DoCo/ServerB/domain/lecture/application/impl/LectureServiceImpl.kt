@@ -5,7 +5,9 @@ import DoCo.ServerB.domain.lecture.data.dto.req.LecturePostReq
 import DoCo.ServerB.domain.lecture.data.dto.req.LecturePutReq
 import DoCo.ServerB.domain.lecture.data.dto.res.LectureGetElementRes
 import DoCo.ServerB.domain.lecture.data.dto.res.LectureGetRes
+import DoCo.ServerB.domain.lecture.data.dto.res.LectureRequestGetElementRes
 import DoCo.ServerB.global.data.entity.Lecture
+import DoCo.ServerB.global.data.entity.LectureRequest
 import DoCo.ServerB.global.data.entity.User
 import DoCo.ServerB.global.repository.ImageRepository
 import DoCo.ServerB.global.repository.LectureRepository
@@ -99,5 +101,65 @@ class LectureServiceImpl(
             ResponseEntity.ok().build()
         else
             ResponseEntity(HttpStatus.NOT_FOUND)
+    }
+
+    override fun postRequest(id: Int, authentication: Authentication): ResponseEntity<HttpStatus> {
+        return try{
+            val lecture = lectureRepository.findById(id).orElseThrow { NullPointerException() }
+            val user = User(authentication.name.toLong())
+
+            CompletableFuture.supplyAsync {
+                LectureRequest(id = null, lecture = lecture, user = user)
+            }.thenApplyAsync {
+                    lectureRequest ->
+                lectureRequestRepository.save(lectureRequest)
+            }
+            ResponseEntity.ok().build()
+        } catch(nullPointerException: NullPointerException){
+            ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    override fun getRequest(
+        id: Int,
+        authentication: Authentication
+    ): ResponseEntity<List<LectureRequestGetElementRes>> {
+        return try{
+            val lecture = lectureRepository.findByIdAndUser(id, User(authentication.name.toLong())).orElseThrow { NullPointerException() }
+            ResponseEntity.ok(lectureRequestRepository.findByLecture(lecture).map {
+                    lectureRequest -> LectureRequestGetElementRes(lectureRequest)
+            })
+        }catch(nullPointerException: NullPointerException) {
+            ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+    }
+
+    override fun patchRequest(
+        lectureId: Int,
+        lectureRequestId: Int,
+        authentication: Authentication
+    ): ResponseEntity<HttpStatus> {
+        try{
+            val user = User(authentication.name.toLong())
+            val lecture = lectureRepository.findByIdAndUser(lectureId, user).orElseThrow { NullPointerException() }
+            val lectureRequest = lectureRequestRepository.findByIdAndLecture(lectureId, lecture).orElseThrow { NoSuchElementException() }
+
+            lecture.accepted = true
+            lectureRequest.accepted = true
+
+            CompletableFuture.runAsync {
+                lectureRepository.save(lecture)
+            }
+
+            CompletableFuture.runAsync {
+                lectureRequestRepository.save(lectureRequest)
+            }
+
+            return ResponseEntity.ok().build()
+        }catch (nullPointerException: NullPointerException){
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }catch (noSuchElementException: NoSuchElementException){
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
     }
 }
