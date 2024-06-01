@@ -58,6 +58,9 @@ dependencies {
 	implementation("jakarta.annotation:jakarta.annotation-api")
 	kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
+
+	//socket
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 }
 
 tasks.withType<KotlinCompile> {
