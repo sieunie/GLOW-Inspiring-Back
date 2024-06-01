@@ -9,8 +9,9 @@ data class Image(
     var id: Int?,
     var mentoringId: Int?,
     var lectureId: Int?,
+    var profileId: Int?,
     var path: String,
     var userId: Long
 ){
-    constructor(path: String, userId: Long): this(id=null, mentoringId = null, lectureId = null, path = path, userId = userId)
+    constructor(path: String, userId: Long): this(id=null, mentoringId = null, lectureId = null, profileId = null, path = path, userId = userId)
 }
