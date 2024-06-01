@@ -12,4 +12,6 @@ data class Image(
     @ManyToOne
     var lecture: Lecture?,
     var path: String
-)
+){
+    constructor(path: String): this(id=null, mentoring = null, lecture = null, path = path)
+}
