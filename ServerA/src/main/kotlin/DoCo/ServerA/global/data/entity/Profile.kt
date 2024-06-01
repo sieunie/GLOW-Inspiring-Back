@@ -8,6 +8,5 @@ data class Profile(
     @Id
     var userId: Long,
     var description: String?,
-    var imagePath: String?,
-    var education: String?
+    var imagePath: String?
 )

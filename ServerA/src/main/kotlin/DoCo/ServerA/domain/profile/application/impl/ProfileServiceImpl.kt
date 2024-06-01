@@ -3,14 +3,8 @@ package DoCo.ServerA.domain.profile.application.impl
 import DoCo.ServerA.domain.profile.application.ProfileService
 import DoCo.ServerA.domain.profile.data.dto.req.ProfilePostReq
 import DoCo.ServerA.domain.profile.data.dto.res.ProfileGetRes
-import DoCo.ServerA.global.data.entity.Career
-import DoCo.ServerA.global.data.entity.Prize
-import DoCo.ServerA.global.data.entity.Profile
-import DoCo.ServerA.global.data.entity.User
-import DoCo.ServerA.global.repository.CareerRepository
-import DoCo.ServerA.global.repository.PrizeRepository
-import DoCo.ServerA.global.repository.ProfileRepository
-import DoCo.ServerA.global.repository.UserRepository
+import DoCo.ServerA.global.data.entity.*
+import DoCo.ServerA.global.repository.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
@@ -24,6 +18,7 @@ class ProfileServiceImpl(
     private val prizeRepository: PrizeRepository,
     private val careerRepository: CareerRepository,
     private val userRepository: UserRepository,
+    private val educationRepository: EducationRepository
 ): ProfileService {
 
     override fun post(profilePostReq: ProfilePostReq, authentication: Authentication): ResponseEntity<HttpStatus> {
@@ -37,27 +32,38 @@ class ProfileServiceImpl(
         profileRepository.save(Profile(
             userId = user.id,
             description = profilePostReq.description,
-            imagePath = null,
-            education = profilePostReq.education,
+            imagePath = null
         ))
 
-        profilePostReq.prizeList.map {
-            prize ->
-            prizeRepository.save(Prize(
-                id = null,
-                user = user,
-                content = prize
-            ))
+        CompletableFuture.runAsync {
+            profilePostReq.prizeList.map {
+                    prize ->
+                prizeRepository.save(Prize(
+                    id = null,
+                    user = user,
+                    content = prize
+                ))
+            }
         }
 
-        profilePostReq.careerList.map {
-            career ->
-            careerRepository.save(Career(
-                id = null,
-                user = user,
-                content = career
-            ))
+        CompletableFuture.runAsync {
+            profilePostReq.careerList.map {
+                    career ->
+                careerRepository.save(Career(
+                    id = null,
+                    user = user,
+                    content = career
+                ))
+            }
         }
+
+        CompletableFuture.runAsync {
+            profilePostReq.educationList.map{
+                education ->
+                educationRepository.save(Education(id = null, user = user, content = education))
+            }
+        }
+
 
         return ResponseEntity(HttpStatus.OK)
     }
@@ -69,6 +75,7 @@ class ProfileServiceImpl(
             val user = User(authentication.name.toLong())
             prizeRepository.deleteByUser(user)
             careerRepository.deleteByUser(user)
+            educationRepository.deleteByUser(user)
             user
         } catch (noSuchElementException: NoSuchElementException) {
             return ResponseEntity(HttpStatus.BAD_REQUEST)
@@ -78,10 +85,9 @@ class ProfileServiceImpl(
             profileRepository.save(Profile(
                 userId = userId,
                 description = profilePostReq.description,
-                imagePath = null,
-                education = profilePostReq.education,
+                imagePath = null
             ))
-        }.thenApplyAsync {
+        }.thenRunAsync {
             profilePostReq.prizeList.map {
                     prize ->
                 prizeRepository.save(Prize(
@@ -90,7 +96,7 @@ class ProfileServiceImpl(
                     content = prize
                 ))
             }
-        }.thenApplyAsync {
+        }.thenRunAsync {
             profilePostReq.careerList.map {
                     career ->
                 careerRepository.save(Career(
@@ -98,6 +104,10 @@ class ProfileServiceImpl(
                     user = user,
                     content = career
                 ))
+            }
+        }.thenRunAsync {
+            profilePostReq.educationList.map {
+                education -> educationRepository.save(Education(id = null, user = user, content = education))
             }
         }
 
@@ -113,6 +123,7 @@ class ProfileServiceImpl(
         profileRepository.deleteById(authentication.name.toLong())
         prizeRepository.deleteByUser(user)
         careerRepository.deleteByUser(user)
+        println(educationRepository.deleteByUser(user))
         return ResponseEntity.ok().build()
     }
 
@@ -129,7 +140,7 @@ class ProfileServiceImpl(
                 id = id,
                 description = profile.description,
                 imagePath = profile.imagePath,
-                education = profile.education,
+                education = educationRepository.findAllByUser(User(profile.userId)).map { education -> education.content },
                 careerList = careerRepository.findAllByUserId(id),
                 prizeList = prizeRepository.findAllByUserId(id)
         ), HttpStatus.OK)
