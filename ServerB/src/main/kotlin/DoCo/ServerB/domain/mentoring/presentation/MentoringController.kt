@@ -5,6 +5,7 @@ import DoCo.ServerB.domain.mentoring.dto.req.MentoringPostReq
 import DoCo.ServerB.domain.mentoring.dto.req.MentoringPutReq
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
+import DoCo.ServerB.domain.mentoring.dto.res.MentoringRequestGetElementRes
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -70,5 +71,32 @@ class MentoringController(
     )
     fun delete(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
         return mentoringService.delete(id, authentication)
+    }
+
+    @PostMapping("/request")
+    @Operation(summary = "과외 요청 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200")
+    )
+    fun postRequest(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
+        return mentoringService.postRequest(id, authentication)
+    }
+
+    @GetMapping("/request")
+    @Operation(summary = "과외 조회 API")
+    @ApiResponses(
+        ApiResponse(responseCode = "200")
+    )
+    fun getRequest(@RequestParam id: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<List<MentoringRequestGetElementRes>>{
+        return mentoringService.getRequest(id, authentication)
+    }
+
+    @PatchMapping("/request")
+    @Operation(summary = "과외 요청 수락 API")
+    @ApiResponses(
+
+    )
+    fun patchRequest(@RequestParam mentoringId: Int, mentoringRequestId: Int, @Parameter(hidden = true) authentication: Authentication): ResponseEntity<HttpStatus>{
+        return mentoringService.patchRequest(mentoringId, mentoringRequestId, authentication)
     }
 }
