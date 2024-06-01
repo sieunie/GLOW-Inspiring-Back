@@ -7,6 +7,8 @@ plugins {
 	kotlin("jvm") version "1.9.24"
 	kotlin("plugin.spring") version "1.9.24"
 	kotlin("plugin.jpa") version "1.9.24"
+	kotlin("kapt") version "1.9.22"
+	idea
 }
 
 group = "DoCo"
@@ -48,6 +50,14 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
+
+	//querydsl
+	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+	implementation("com.querydsl:querydsl-apt:5.0.0:jakarta")
+	implementation("jakarta.persistence:jakarta.persistence-api")
+	implementation("jakarta.annotation:jakarta.annotation-api")
+	kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
+	kapt("org.springframework.boot:spring-boot-configuration-processor")
 }
 
 tasks.withType<KotlinCompile> {

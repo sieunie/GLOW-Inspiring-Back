@@ -13,7 +13,7 @@ class JwtTokenProvider(
     val secretKey: String
 ) {
 
-    private final val accessTokenValidTime = Duration.ofHours(2).toMillis()
+    private final val accessTokenValidTime = Duration.ofDays(7).toMillis()
     private final val refreshTokenValidTime = Duration.ofDays(7).toMillis()
 
     fun getId(token: String): Long?{
