@@ -16,5 +16,6 @@ data class Chat(
     var chatRoom: ChatRoom,
     var createdAt: LocalDateTime = LocalDateTime.now(),
     var content: String,
-    var isSender: Boolean
+    @ManyToOne
+    var sender: User
 )
