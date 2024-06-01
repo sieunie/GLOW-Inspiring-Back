@@ -2,6 +2,7 @@ package DoCo.ServerB.domain.mentoring.application.impl
 
 import DoCo.ServerB.domain.mentoring.application.MentoringService
 import DoCo.ServerB.domain.mentoring.dto.req.MentoringPostReq
+import DoCo.ServerB.domain.mentoring.dto.req.MentoringPutReq
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetElementRes
 import DoCo.ServerB.domain.mentoring.dto.res.MentoringGetRes
 import DoCo.ServerB.global.data.entity.Mentoring
@@ -63,9 +64,39 @@ class MentoringServiceImpl(
         }
     }
 
+    override fun put(mentoringPutReq: MentoringPutReq, authentication: Authentication): ResponseEntity<HttpStatus> {
+        val user = User(authentication.name.toLong())
+        try{
+            val mentoring = mentoringRepository.findByIdAndUser(mentoringPutReq.id, user).orElseThrow { NullPointerException() }
+
+            CompletableFuture.supplyAsync {
+                println(mentoringRepository.save(mentoring.put(mentoringPutReq)))
+            }.thenApplyAsync {
+                mentoringPutReq.imageIdList.map{
+                    imageId ->
+                        val image = imageRepository.findById(imageId).orElseThrow()
+                        image.mentoring = mentoring
+                        imageRepository.save(image)
+                }
+            }
+
+            return ResponseEntity.ok().build()
+        }
+        catch(nullPointerException: NullPointerException){
+            return ResponseEntity(HttpStatus.NOT_FOUND)
+        }
+    }
+
+    override fun delete(id: Int, authentication: Authentication): ResponseEntity<HttpStatus> {
+        return if(mentoringRepository.deleteByIdAndUser(id, User(authentication.name.toLong())) > 0)
+            ResponseEntity.ok().build()
+        else
+            ResponseEntity(HttpStatus.NOT_FOUND)
+    }
+
     override fun getList(pageNumber: Int, pageSize: Int): ResponseEntity<Page<MentoringGetElementRes>> {
         return ResponseEntity.ok(mentoringRepository.findAll(PageRequest.of(pageNumber, pageSize)).map{
-                mentoring -> MentoringGetElementRes(mentoring, imageRepository.findByMentoringOrderById(mentoring, PageRequest.of(0, 1)))
+                mentoring -> MentoringGetElementRes(mentoring, imageRepository.findByMentoringOrderByIdDesc(mentoring, PageRequest.of(0, 1)))
         })
     }
 
